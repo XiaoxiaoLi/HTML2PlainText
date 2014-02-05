@@ -1,11 +1,10 @@
-import java.io.IOException;
-
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.safety.Whitelist;
 
 /**
- * To parse different kinds of input text into plain text.
+ * To parse HTML into plain text for text analysis
  * 
  * @author Xiaoxiao Li
  * 
@@ -15,10 +14,9 @@ public class PlainTextParser {
 		String result = "";
 
 		// Clean HTML tags
-		result = cleanTagPerservingLineBreaks(html);
-		// Unescape HTML eg. &lt; to <
-		result = org.apache.commons.lang3.StringEscapeUtils
-				.unescapeHtml4(result);
+		result = cleanTagPerservingLineBreaks(result);
+		// Unescape HTML eg. &lt; to < with StringEscapeUtils
+		result = StringEscapeUtils.unescapeHtml4(result);
 		// Remove URLs
 		result = removeUrl(result);
 		// Remove extended chars
@@ -28,7 +26,9 @@ public class PlainTextParser {
 	}
 
 	/**
-	 * Clean HTML tags while preserving the line breaks
+	 * Clean HTML tags while preserving the line breaks using JSoup
+	 * 
+	 * Credit: http://stackoverflow.com/a/19602313/1830564
 	 * 
 	 * 1. if the original html contains newline(\n), it gets preserved
 	 * 
@@ -57,33 +57,34 @@ public class PlainTextParser {
 	}
 
 	/**
-	 * Remove extended chars TODO: just remove unwanted chars, check format
-	 * String, this version removes all chars above 127 like i in Zaïane!
+	 * Remove extended chars
+	 * 
+	 * this version removes all chars above 127
 	 * 
 	 * @param str
 	 * @return
 	 */
 	public static String removeExtendedChars(String str) {
-		// return str.replaceAll("[^\\x21-\\x7E]", " ");
 		return str.replaceAll("[^\\x00-\\x7F]", " ");
 	}
 
 	/**
-	 * When doing text analysis, we don't want the urls, this method removes
-	 * them from text.
+	 * Remove URLs from text
+	 * 
+	 * Credit: http://stackoverflow.com/a/5713697/1830564
+	 * 
+	 * Sometimes when doing text analysis, we don't want the urls
 	 * 
 	 * @param str
 	 * @return
 	 */
 	public static String removeUrl(String str) {
-		String regex = "\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
+		String regex = "\\b(https?|ftp|file|telnet|http|Unsure)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
 		str = str.replaceAll(regex, "");
-
 		return str;
 	}
 
-	public static void main(String[] argh) throws IOException {
-		PlainTextParser parser = new PlainTextParser();
-		System.out.println(parser.html2PlainText("a<br>b"));
+	public static void main(String[] argh) {
+		System.out.println(PlainTextParser.html2PlainText("a<br>b"));
 	}
 }
